@@ -1,14 +1,14 @@
-const clothingItem = require("../models/clothingItem");
 const ClothingItems = require("../models/clothingItem");
-const { INTERNAL_SERVER_ERROR, BAD_REQUEST } = require("../utils/errors");
+const { INTERNAL_SERVER_ERROR } = require("../utils/errors");
 
 const createItem = (req, res) => {
   console.log(req);
   console.log(req.body);
 
-  const { name, weather, imageURL } = req.body;
+  const { name, weather, imageUrl } = req.body;
+  const ownerId = req.user._id;
 
-  ClothingItems.create({ name, weather, imageURL })
+  ClothingItems.create({ name, weather, imageUrl, ownerId })
     .then((item) => {
       console.log(item);
       res.send({ data: item });
@@ -49,9 +49,43 @@ const deleteItem = (req, res) => {
     });
 };
 
+const likeItem = (req, res) => {
+  const { itemId } = req.params;
+  const userId = req.user._id;
+
+  ClothingItems.findByIdAndUpdate(
+    itemId,
+    { $addToSet: { likes: userId } },
+    { new: true }
+  )
+    .orFail()
+    .then((item) => res.status(200).send(item))
+    .catch((e) => {
+      res.status(INTERNAL_SERVER_ERROR).send({ message: e.message, e });
+    });
+};
+
+const dislikeItem = (req, res) => {
+  const { itemId } = req.params;
+  const userId = req.user._id;
+
+  ClothingItems.findByIdAndUpdate(
+    itemId,
+    { $pull: { likes: userId } },
+    { new: true }
+  )
+    .orFail()
+    .then((item) => res.status(200).send(item))
+    .catch((e) => {
+      res.status(INTERNAL_SERVER_ERROR).send({ message: e.message, e });
+    });
+};
+
 module.exports = {
   createItem,
   getItems,
   updateItem,
   deleteItem,
+  likeItem,
+  dislikeItem,
 };
