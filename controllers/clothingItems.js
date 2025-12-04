@@ -32,7 +32,7 @@ const createItem = (req, res) => {
 
 const getItems = (req, res) => {
   ClothingItems.find({})
-    .then((items) => res.status(200).send(items))
+    .then((items) => res.status(200).send({ data: items }))
     .catch((e) => {
       console.error(e);
       res
