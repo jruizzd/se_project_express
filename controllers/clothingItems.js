@@ -75,10 +75,17 @@ const updateItem = (req, res) => {
 
 const deleteItem = (req, res) => {
   const { itemId } = req.params;
-  console.log(itemId);
-  ClothingItems.findByIdAndDelete(itemId)
+  const currentUserId = req.user._id;
+  ClothingItems.findById(itemId)
     .orFail()
-    .then(() => res.status(204).send({}))
+    .then((item) => {
+      if (item.ownerId.toString() !== currentUserId.toString()) {
+        return res.status(403).send({ message: "You cannot delete this item" });
+      }
+      return ClothingItems.findByIdAndDelete(itemId).then(() =>
+        res.status(204).send({})
+      );
+    })
     .catch((e) => {
       console.error(e);
       if (e.name === "CastError") {
