@@ -93,4 +93,35 @@ const login = (req, res) => {
     });
 };
 
-module.exports = { getUsers, createUser, getCurrentUser, login };
+const updateUser = (req, res) => {
+  const userId = req.user._id;
+  const { name, avatar } = req.body;
+
+  User.findByIdAndUpdate(
+    userId,
+    { name, avatar },
+    {
+      new: true, // return the updated document
+      runValidators: true, // enable schema validation on update
+    }
+  )
+    .orFail()
+    .then((user) => res.status(200).send(user))
+    .catch((err) => {
+      console.error(err);
+
+      if (err.name === "DocumentNotFoundError") {
+        return res.status(NOT_FOUND).send({ message: "User not found" });
+      }
+
+      if (err.name === "ValidationError") {
+        return res.status(BAD_REQUEST).send({ message: "Invalid user data" });
+      }
+
+      return res
+        .status(INTERNAL_SERVER_ERROR)
+        .send({ message: "An error has occurred on the server" });
+    });
+};
+
+module.exports = { getUsers, createUser, getCurrentUser, updateUser, login };
