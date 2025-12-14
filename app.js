@@ -12,12 +12,8 @@ mongoose
   })
   .catch(console.error);
 
-app.use((req, res, next) => {
-  req.user = { _id: "your_actual_user_id_here" };
-  next();
-});
-
 app.use(express.json());
+
 app.use("/", mainRouter);
 
 app.listen(PORT, () => {
