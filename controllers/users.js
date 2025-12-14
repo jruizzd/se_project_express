@@ -25,14 +25,14 @@ const createUser = (req, res) => {
   const { name, avatar, email, password } = req.body;
   bcrypt
     .hash(password, 10)
-    .then((hashedPassword) => {
-      return User.create({
+    .then((hashedPassword) =>
+      User.create({
         name,
         avatar,
         email,
         password: hashedPassword,
-      });
-    })
+      })
+    )
 
     .then((user) => {
       res.status(201).send({

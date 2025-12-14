@@ -1,9 +1,9 @@
 const jwt = require("jsonwebtoken");
-const { JWT_SECRET } = require("../config");
+const { JWT_SECRET } = require("../utils/config");
 
 function auth(req, res, next) {
   try {
-    const authorization = req.headers.authorization;
+    const authorization = req.headers;
 
     if (!authorization || !authorization.startsWith("Bearer ")) {
       return res.status(401).json({
@@ -19,6 +19,7 @@ function auth(req, res, next) {
     req.user = payload;
 
     next();
+    return null;
   } catch (err) {
     return res.status(401).json({
       message: "Unauthorized",

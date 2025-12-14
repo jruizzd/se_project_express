@@ -8,7 +8,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, "The avatar field is required."],
     validate: {
-      validator(value) {
+      validator: function validateURL(value) {
         return validator.isURL(value);
       },
       message: "You must enter a valid URL",
@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema({
     unique: true,
     lowercase: true,
     validate: {
-      validator(value) {
+      validator: function validateEmail(value) {
         return validator.isEmail(value);
       },
       message: "You must enter a valid email",
@@ -35,18 +35,24 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next(); // only hash if password changed
-  try {
-    const hash = await bcrypt.hash(this.password, 10);
-    this.password = hash;
-    next();
-  } catch (err) {
-    next(err);
+userSchema.pre("save", function hashPassword(next) {
+  if (!this.isModified("password")) {
+    return next(); // only hash if password changed
   }
+  bcrypt
+    .hash(this.password, 10)
+    .then((hash) => {
+      this.password = hash;
+      return next();
+    })
+    .catch((err) => next(err));
+  return undefined;
 });
 
-userSchema.statics.findUserByCredentials = function (email, password) {
+userSchema.statics.findUserByCredentials = function findUserByCredentials(
+  email,
+  password
+) {
   return this.findOne({ email })
     .select("+password")
     .then((user) => {
