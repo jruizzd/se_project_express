@@ -10,9 +10,9 @@ const createItem = (req, res) => {
   console.log(req.body);
 
   const { name, weather, imageUrl } = req.body;
-  const ownerId = req.user._id;
+  const owner = req.user._id;
 
-  ClothingItems.create({ name, weather, imageUrl, ownerId })
+  ClothingItems.create({ name, weather, imageUrl, owner })
     .then((item) => {
       console.log(item);
       res.send({ data: item });
@@ -43,11 +43,11 @@ const getItems = (req, res) => {
 
 const updateItem = (req, res) => {
   const { itemId } = req.params;
-  const { imageURL } = req.body;
+  const { imageUrl } = req.body;
 
   ClothingItems.findByIdAndUpdate(
     itemId,
-    { $set: { imageURL } },
+    { $set: { imageUrl } },
     { new: true, runValidators: true }
   )
     .orFail()
@@ -79,7 +79,7 @@ const deleteItem = (req, res) => {
   ClothingItems.findById(itemId)
     .orFail()
     .then((item) => {
-      if (item.ownerId.toString() !== currentUserId.toString()) {
+      if (!item.owner.equals(currentUserId)) {
         return res.status(403).send({ message: "You cannot delete this item" });
       }
       return ClothingItems.findByIdAndDelete(itemId).then(() =>

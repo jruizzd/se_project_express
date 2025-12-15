@@ -5,6 +5,8 @@ const clothingItem = new mongoose.Schema({
   name: {
     type: String,
     required: true,
+    minlength: 2,
+    maxlength: 30,
   },
 
   weather: {
@@ -24,7 +26,7 @@ const clothingItem = new mongoose.Schema({
 
   owner: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    ref: "user",
     required: true,
   },
 
@@ -39,4 +41,4 @@ const clothingItem = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("clothingitems", clothingItem);
+module.exports = mongoose.model("clothingitem", clothingItem);

@@ -35,20 +35,6 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-userSchema.pre("save", function hashPassword(next) {
-  if (!this.isModified("password")) {
-    return next(); // only hash if password changed
-  }
-  bcrypt
-    .hash(this.password, 10)
-    .then((hash) => {
-      this.password = hash;
-      return next();
-    })
-    .catch((err) => next(err));
-  return undefined;
-});
-
 userSchema.statics.findUserByCredentials = function findUserByCredentials(
   email,
   password
