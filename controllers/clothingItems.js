@@ -106,7 +106,7 @@ const likeItem = (req, res) => {
     { new: true }
   )
     .orFail()
-    .then((item) => res.status(200).send(item))
+    .then((item) => res.status(200).send({ data: item }))
     .catch((e) => {
       console.error(e);
       if (e.name === "CastError") {
@@ -132,7 +132,7 @@ const dislikeItem = (req, res) => {
     { new: true }
   )
     .orFail()
-    .then((item) => res.status(200).send(item))
+    .then((item) => res.status(200).send({ data: item }))
     .catch((e) => {
       console.error(e);
 
