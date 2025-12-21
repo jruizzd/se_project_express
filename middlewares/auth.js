@@ -19,7 +19,7 @@ function auth(req, res, next) {
     // attach user payload to request
     req.user = payload;
 
-    next();
+    return next();
   } catch (err) {
     return res.status(UNAUTHORIZED).json({
       message: "Unauthorized",
