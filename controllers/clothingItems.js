@@ -79,7 +79,7 @@ const deleteItem = (req, res) => {
         return res.status(403).send({ message: "You cannot delete this item" });
       }
       return ClothingItems.findByIdAndDelete(itemId).then(() =>
-        res.status(204).send({})
+        res.status(200).send({ message: "Item deleted successfully" })
       );
     })
     .catch((e) => {
