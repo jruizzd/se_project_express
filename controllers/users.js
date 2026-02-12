@@ -13,9 +13,9 @@ const {
 const getUsers = async (req, res, next) => {
   try {
     const users = await User.find({});
-    res.status(200).send(users);
+    return res.status(200).send(users);
   } catch (err) {
-    next(err);
+    return next(err);
   }
 };
 
@@ -33,7 +33,7 @@ const createUser = async (req, res, next) => {
       password: hashedPassword,
     });
 
-    res.status(201).send({
+    return res.status(201).send({
       _id: user._id,
       name: user.name,
       avatar: user.avatar,
@@ -41,18 +41,22 @@ const createUser = async (req, res, next) => {
     });
   } catch (err) {
     if (err.code === 11000) {
-      const conflictError = new Error("A user with that email already exists");
-      conflictError.statusCode = CONFLICT;
-      return next(conflictError);
+      return next(
+        Object.assign(new Error("A user with that email already exists"), {
+          statusCode: CONFLICT,
+        })
+      );
     }
 
     if (err.name === "ValidationError") {
-      const validationError = new Error("Invalid user data");
-      validationError.statusCode = BAD_REQUEST;
-      return next(validationError);
+      return next(
+        Object.assign(new Error("Invalid user data"), {
+          statusCode: BAD_REQUEST,
+        })
+      );
     }
 
-    next(err);
+    return next(err);
   }
 };
 
@@ -60,21 +64,21 @@ const createUser = async (req, res, next) => {
 const getCurrentUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id).orFail();
-    res.status(200).send(user);
+    return res.status(200).send(user);
   } catch (err) {
     if (err.name === "DocumentNotFoundError") {
-      const notFoundError = new Error("User not found");
-      notFoundError.statusCode = NOT_FOUND;
-      return next(notFoundError);
+      return next(
+        Object.assign(new Error("User not found"), { statusCode: NOT_FOUND })
+      );
     }
 
     if (err.name === "CastError") {
-      const badRequestError = new Error("Invalid user ID");
-      badRequestError.statusCode = BAD_REQUEST;
-      return next(badRequestError);
+      return next(
+        Object.assign(new Error("Invalid user ID"), { statusCode: BAD_REQUEST })
+      );
     }
 
-    next(err);
+    return next(err);
   }
 };
 
@@ -84,20 +88,22 @@ const login = async (req, res, next) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      const badRequestError = new Error("Email and password are required");
-      badRequestError.statusCode = BAD_REQUEST;
-      throw badRequestError;
+      throw Object.assign(new Error("Email and password are required"), {
+        statusCode: BAD_REQUEST,
+      });
     }
 
     const user = await User.findUserByCredentials(email, password);
 
     const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: "7d" });
 
-    res.send({ token });
+    return res.send({ token });
   } catch (err) {
-    const authError = new Error("Incorrect email or password");
-    authError.statusCode = UNAUTHORIZED;
-    next(authError);
+    return next(
+      Object.assign(new Error("Incorrect email or password"), {
+        statusCode: UNAUTHORIZED,
+      })
+    );
   }
 };
 
@@ -112,21 +118,23 @@ const updateUser = async (req, res, next) => {
       { new: true, runValidators: true }
     ).orFail();
 
-    res.status(200).send(user);
+    return res.status(200).send(user);
   } catch (err) {
     if (err.name === "DocumentNotFoundError") {
-      const notFoundError = new Error("User not found");
-      notFoundError.statusCode = NOT_FOUND;
-      return next(notFoundError);
+      return next(
+        Object.assign(new Error("User not found"), { statusCode: NOT_FOUND })
+      );
     }
 
     if (err.name === "ValidationError") {
-      const validationError = new Error("Invalid user data");
-      validationError.statusCode = BAD_REQUEST;
-      return next(validationError);
+      return next(
+        Object.assign(new Error("Invalid user data"), {
+          statusCode: BAD_REQUEST,
+        })
+      );
     }
 
-    next(err);
+    return next(err);
   }
 };
 

@@ -1,4 +1,4 @@
-const { CONFLICT } = require("../utils/error");
+const { CONFLICT } = require("../utils/errors");
 
 class ConflictError extends Error {
   constructor(message) {
