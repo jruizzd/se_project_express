@@ -1,4 +1,6 @@
-const router = require("express").Router();
+const express = require("express");
+
+const router = express.Router();
 
 const {
   createItem,
@@ -9,24 +11,26 @@ const {
   dislikeItem,
 } = require("../controllers/clothingItems");
 
-// CRUD
+const {
+  validateCreateItem,
+  validateUpdateItem,
+  validateItemId,
+} = require("../middlewares/validation");
 
 // Create
-router.post("/", createItem);
+router.post("/", validateCreateItem, createItem);
 
 // Read
 router.get("/", getItems);
 
 // Update
-router.put("/:itemId", updateItem);
+router.put("/:itemId", validateItemId, validateUpdateItem, updateItem);
 
 // Delete
-router.delete("/:itemId", deleteItem);
+router.delete("/:itemId", validateItemId, deleteItem);
 
 // Likes
-router.put("/:itemId/likes", likeItem);
-
-// Dislike
-router.delete("/:itemId/likes", dislikeItem);
+router.put("/:itemId/likes", validateItemId, likeItem);
+router.delete("/:itemId/likes", validateItemId, dislikeItem);
 
 module.exports = router;

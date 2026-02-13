@@ -5,19 +5,19 @@ const clothingItems = require("./clothingItems");
 const userRouter = require("./users");
 
 const { login, createUser } = require("../controllers/users");
-const { getItems } = require("../controllers/clothingItems");
 const { NOT_FOUND } = require("../utils/errors");
 
+// ---------- PUBLIC ----------
 router.post("/signin", login);
 router.post("/signup", createUser);
-router.get("/items", getItems);
+router.use("/items", clothingItems); // public read
 
+// ---------- PROTECTED ----------
 router.use(auth);
-
-router.use("/items", clothingItems);
 router.use("/users", userRouter);
 
-router.use((req, res) => {
+// ---------- 404 ----------
+router.use((req, res, next) => {
   res.status(NOT_FOUND).send({ message: "Requested resource not found" });
 });
 

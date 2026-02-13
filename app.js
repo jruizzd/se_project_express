@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const { errors } = require("celebrate");
 const mainRouter = require("./routes/index");
 const errorHandler = require("./middlewares/error-handler");
 
@@ -16,7 +17,14 @@ mongoose
 
 app.use(express.json());
 app.use(cors());
+
+/* -------- ROUTES -------- */
 app.use("/", mainRouter);
+
+/* -------- CELEBRATE ERRORS (must be BEFORE global handler) -------- */
+app.use(errors());
+
+/* -------- GLOBAL ERROR HANDLER -------- */
 app.use(errorHandler);
 
 app.listen(PORT, () => {

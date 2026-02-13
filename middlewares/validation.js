@@ -3,62 +3,69 @@ const validator = require("validator");
 
 /* -------------------- HELPERS -------------------- */
 
-// Safe URL validator (prevents server crash)
-const urlValidator = (value, helpers) => {
-  if (!validator.isURL(value, { require_protocol: true })) {
-    return helpers.message("Invalid URL format");
+// Strict URL validator
+const validateURL = (value, helpers) => {
+  if (
+    validator.isURL(value, {
+      protocols: ["http", "https"],
+      require_protocol: true,
+      require_host: true,
+      require_tld: true,
+    })
+  ) {
+    return value;
   }
-  return value;
+  return helpers.error("string.uri");
 };
 
-// MongoDB ObjectId validation
-const objectIdValidator = (value, helpers) => {
-  if (!validator.isMongoId(value)) {
-    return helpers.message("Invalid item id");
+// MongoDB ObjectId validator
+const validateObjectId = (value, helpers) => {
+  if (validator.isMongoId(value)) {
+    return value;
   }
-  return value;
+  return helpers.error("any.invalid");
 };
 
 /* -------------------- CLOTHING ITEMS -------------------- */
 
-// Create clothing item
 const validateCreateItem = celebrate({
   [Segments.BODY]: Joi.object().keys({
-    name: Joi.string().required().min(2).max(30).messages({
-      "string.empty": "Name is required",
-      "string.min": "Name must be at least 2 characters",
-      "string.max": "Name must be under 30 characters",
-    }),
-
-    weather: Joi.string().required().valid("hot", "warm", "cold").messages({
-      "any.only": "Weather must be hot, warm, or cold",
-    }),
-
-    imageUrl: Joi.string().required().custom(urlValidator),
+    name: Joi.string().required().min(2).max(30),
+    weather: Joi.string().required().valid("hot", "warm", "cold"),
+    imageUrl: Joi.string().required().custom(validateURL),
   }),
 });
 
-// Delete item / Like / Unlike
+const validateUpdateItem = celebrate({
+  [Segments.BODY]: Joi.object()
+    .keys({
+      name: Joi.string().min(2).max(30),
+      weather: Joi.string().valid("hot", "warm", "cold"),
+      imageUrl: Joi.string().custom(validateURL),
+    })
+    .min(1),
+});
+
 const validateItemId = celebrate({
   [Segments.PARAMS]: Joi.object().keys({
-    itemId: Joi.string().required().custom(objectIdValidator),
+    itemId: Joi.string().required().custom(validateObjectId),
   }),
 });
 
 /* -------------------- USERS -------------------- */
 
-// Update profile
 const validateUpdateProfile = celebrate({
-  [Segments.BODY]: Joi.object().keys({
-    name: Joi.string().min(2).max(30),
-    avatar: Joi.string().custom(urlValidator),
-  }),
+  [Segments.BODY]: Joi.object()
+    .keys({
+      name: Joi.string().min(2).max(30),
+      avatar: Joi.string().custom(validateURL),
+    })
+    .min(1),
 });
-
-/* -------------------- EXPORTS -------------------- */
 
 module.exports = {
   validateCreateItem,
+  validateUpdateItem,
   validateItemId,
   validateUpdateProfile,
 };
