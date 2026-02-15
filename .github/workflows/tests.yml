@@ -46,6 +46,9 @@ jobs:
       - name: Installing Dependencies
         run: npm ci --loglevel=error --no-fund --no-audit
 
+      - name: Set test environment
+        run: echo "NODE_ENV=test" >> $GITHUB_ENV
+
       - name: Listing files
         run: ls -la && ls -la tests
 
