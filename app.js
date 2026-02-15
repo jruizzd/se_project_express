@@ -23,7 +23,7 @@ app.use(requestLogger);
 app.use("/", mainRouter);
 app.use(errorLogger); // enabling the error logger
 app.use(errors()); // celebrate error handler
-app.use(errorHandler); //centralized error handler
+app.use(errorHandler); // centralized error handler
 
 app.listen(PORT, () => {
   console.log(`Listening on port ${PORT}`);

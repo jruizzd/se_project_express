@@ -1,3 +1,4 @@
+// middlewares/logger.js
 const winston = require("winston");
 const expressWinston = require("express-winston");
 
@@ -9,16 +10,33 @@ const messageFormat = winston.format.combine(
       `${timestamp} ${level}: ${meta.error?.stack || message}`
   )
 );
+
 // create a request logger
 const requestLogger = expressWinston.logger({
-  transports: [new winston.transports.File({ filename: "request.log" })],
-  format: winston.format.json(),
+  transports: [
+    new winston.transports.Console({
+      format: messageFormat, // ← Make sure you're using messageFormat here
+    }),
+    new winston.transports.File({
+      filename: "request.log",
+      format: winston.format.json(),
+    }),
+  ],
 });
+
 // error logger
 const errorLogger = expressWinston.errorLogger({
-  transports: [new winston.transports.File({ filename: "error.log" })],
-  format: winston.format.json(),
+  transports: [
+    new winston.transports.Console({
+      format: messageFormat, // ← And here too
+    }),
+    new winston.transports.File({
+      filename: "error.log",
+      format: winston.format.json(),
+    }),
+  ],
 });
+
 module.exports = {
   requestLogger,
   errorLogger,
