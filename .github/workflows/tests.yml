@@ -46,9 +46,6 @@ jobs:
       - name: Installing Dependencies
         run: npm ci --loglevel=error --no-fund --no-audit
 
-      - name: Set test environment
-        run: echo "NODE_ENV=test" >> $GITHUB_ENV
-
       - name: Listing files
         run: ls -la && ls -la tests
 
@@ -56,10 +53,9 @@ jobs:
         run: cd tests && bash ./bin/test-config.sh
 
       - name: Start MongoDB
-        uses: supercharge/mongodb-github-action@1.12.1
+        uses: supercharge/mongodb-github-action@1.6.0
         with:
           mongodb-version: "4.4"
-          mongodb-port: 27017
 
       - name: Run prepare-test-endpoints
         if: ${{ needs.read_sprint_file.outputs.sprint == '12' }}
