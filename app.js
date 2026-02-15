@@ -4,6 +4,7 @@ const cors = require("cors");
 const { errors } = require("celebrate");
 const mainRouter = require("./routes/index");
 const errorHandler = require("./middlewares/error-handler");
+const { requestLogger, errorLogger } = require("./middlewares/logger");
 
 const app = express();
 const { PORT = 3001 } = process.env;
@@ -18,14 +19,11 @@ mongoose
 app.use(express.json());
 app.use(cors());
 
-/* -------- ROUTES -------- */
+app.use(requestLogger);
 app.use("/", mainRouter);
-
-/* -------- CELEBRATE ERRORS (must be BEFORE global handler) -------- */
-app.use(errors());
-
-/* -------- GLOBAL ERROR HANDLER -------- */
-app.use(errorHandler);
+app.use(errorLogger); // enabling the error logger
+app.use(errors()); // celebrate error handler
+app.use(errorHandler); //centralized error handler
 
 app.listen(PORT, () => {
   console.log(`Listening on port ${PORT}`);
