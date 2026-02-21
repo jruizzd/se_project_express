@@ -8,45 +8,43 @@ const errorHandler = require("./middlewares/error-handler");
 const { requestLogger, errorLogger } = require("./middlewares/logger");
 
 const app = express();
-const { PORT = 3001 } = process.env;
+const { PORT = 3001, NODE_ENV } = process.env;
 
 // ---------- DATABASE ----------
 mongoose
   .connect("mongodb://127.0.0.1:27017/wtwr_db")
   .then(() => {
-    console.log(" we are connected to DB");
+    console.log("✅ Connected to MongoDB");
   })
   .catch(console.error);
 
 // ---------- MIDDLEWARE ----------
 app.use(express.json());
 app.use(cors());
-
 app.use(requestLogger);
 
-/*
-  TEMPORARY TEST AUTH MIDDLEWARE
-  The automated tests do NOT send JWT tokens.
-  They expect req.user to already exist.
-
-  Later this will be replaced by real auth middleware.
-*/
-app.use((req, res, next) => {
-  req.user = {
-    _id: "5d8b8592978f8bd833ca8133",
-  };
-  next();
-});
+// ---------- TEST-FRIENDLY AUTH ----------
+// During automated tests, bypass real JWT auth
+if (NODE_ENV === "test") {
+  app.use((req, res, next) => {
+    req.user = { _id: "5d8b8592978f8bd833ca8133" };
+    next();
+  });
+}
 
 // ---------- ROUTES ----------
 app.use("/", mainRouter);
 
 // ---------- ERROR HANDLING ----------
 app.use(errorLogger);
-app.use(errors()); // celebrate validation errors
+app.use(errors()); // Celebrate validation errors
 app.use(errorHandler);
 
 // ---------- SERVER ----------
-app.listen(PORT, () => {
-  console.log(`Listening on port ${PORT}`);
-});
+if (NODE_ENV !== "test") {
+  app.listen(PORT, () => {
+    console.log(`🚀 Listening on port ${PORT}`);
+  });
+}
+
+module.exports = app; // export app for tests
