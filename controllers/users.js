@@ -21,13 +21,14 @@ const getUsers = async (req, res, next) => {
 
 // POST /users
 const createUser = async (req, res, next) => {
+  const { name, avatar, email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(BAD_REQUEST).send({
+      message: "Email and password are required",
+    });
+  }
   try {
-    const { name, avatar, email, password } = req.body;
-    if (!email) {
-      return res.status(BAD_REQUEST).send({
-        message: " email is required",
-      });
-    }
     // 1️⃣ check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
