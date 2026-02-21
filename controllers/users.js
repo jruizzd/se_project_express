@@ -30,7 +30,6 @@ const createUser = async (req, res, next) => {
     }
     // 1️⃣ check if user already exists
     const existingUser = await User.findOne({ email });
-    console.log(existingUser);
     if (existingUser) {
       return res.status(CONFLICT).send({
         message: "A user with that email already exists",
