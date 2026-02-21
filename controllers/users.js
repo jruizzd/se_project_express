@@ -23,9 +23,24 @@ const getUsers = async (req, res, next) => {
 const createUser = async (req, res, next) => {
   try {
     const { name, avatar, email, password } = req.body;
+    if (!email) {
+      return res.status(BAD_REQUEST).send({
+        message: " email is required",
+      });
+    }
+    // 1️⃣ check if user already exists
+    const existingUser = await User.findOne({ email });
+    console.log(existingUser);
+    if (existingUser) {
+      return res.status(CONFLICT).send({
+        message: "A user with that email already exists",
+      });
+    }
 
+    // 2️⃣ hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // 3️⃣ create user
     const user = await User.create({
       name,
       avatar,
@@ -33,6 +48,7 @@ const createUser = async (req, res, next) => {
       password: hashedPassword,
     });
 
+    // 4️⃣ send safe response
     return res.status(201).send({
       _id: user._id,
       name: user.name,
@@ -40,20 +56,17 @@ const createUser = async (req, res, next) => {
       email: user.email,
     });
   } catch (err) {
+    // race condition fallback (VERY important)
     if (err.code === 11000) {
-      return next(
-        Object.assign(new Error("A user with that email already exists"), {
-          statusCode: CONFLICT,
-        })
-      );
+      return res.status(CONFLICT).send({
+        message: "A user with that email already exists",
+      });
     }
 
     if (err.name === "ValidationError") {
-      return next(
-        Object.assign(new Error("Invalid user data"), {
-          statusCode: BAD_REQUEST,
-        })
-      );
+      return res.status(BAD_REQUEST).send({
+        message: "Invalid user data",
+      });
     }
 
     return next(err);
@@ -86,13 +99,11 @@ const getCurrentUser = async (req, res, next) => {
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-
     if (!email || !password) {
-      throw Object.assign(new Error("Email and password are required"), {
-        statusCode: BAD_REQUEST,
+      return res.status(BAD_REQUEST).send({
+        message: "Email and password are required",
       });
     }
-
     const user = await User.findUserByCredentials(email, password);
 
     const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: "7d" });
