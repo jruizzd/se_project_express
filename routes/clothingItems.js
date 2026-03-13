@@ -1,10 +1,8 @@
 const express = require("express");
-
 const router = express.Router();
 
 const {
   createItem,
-  getItems,
   updateItem,
   deleteItem,
   likeItem,
@@ -17,11 +15,10 @@ const {
   validateItemId,
 } = require("../middlewares/validation");
 
+// PROTECTED ROUTES ONLY
+
 // Create
 router.post("/", validateCreateItem, createItem);
-
-// Read
-router.get("/", getItems);
 
 // Update
 router.put("/:itemId", validateItemId, validateUpdateItem, updateItem);
