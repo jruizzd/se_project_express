@@ -33,6 +33,13 @@ if (NODE_ENV === "test") {
   });
 }
 
+// ---------- CRASH TEST (FOR PM2 REVIEW) ----------
+app.get("/crash-test", () => {
+  setTimeout(() => {
+    throw new Error("Server will crash now");
+  }, 0);
+});
+
 // ---------- ROUTES ----------
 app.use("/", mainRouter);
 
