@@ -41,3 +41,9 @@ This project uses the following technologies:
 - ESLint with Airbnb configuration for code quality
 - Prettier for code formatting
 - Nodemon for development
+
+## 🌐 Project Links
+
+- **Domain name:** https://jdserver.flazzard.com
+- **Frontend repository:** https://github.com/jruizzd/se_project_react.git
+- **Project video:** https://your-video-link.com
