@@ -2,12 +2,11 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const { JWT_SECRET } = require("../utils/config");
-const {
-  BAD_REQUEST,
-  NOT_FOUND,
-  CONFLICT,
-  UNAUTHORIZED,
-} = require("../utils/errors");
+
+const BadRequestError = require("../errors/BadRequestError");
+const NotFoundError = require("../errors/NotFoundError");
+const ConflictError = require("../errors/ConflictError");
+const UnauthorizedError = require("../errors/UnauthorizedError");
 
 // GET /users
 const getUsers = async (req, res, next) => {
@@ -19,28 +18,19 @@ const getUsers = async (req, res, next) => {
   }
 };
 
-// POST /users
+// POST /users (signup)
 const createUser = async (req, res, next) => {
-  const { name, avatar, email, password } = req.body;
-
-  if (!email || !password) {
-    return res.status(BAD_REQUEST).send({
-      message: "Email and password are required",
-    });
-  }
   try {
-    // 1️⃣ check if user already exists
+    const { name, avatar, email, password } = req.body;
+
+    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(CONFLICT).send({
-        message: "A user with that email already exists",
-      });
+      throw new ConflictError("A user with that email already exists");
     }
 
-    // 2️⃣ hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 3️⃣ create user
     const user = await User.create({
       name,
       avatar,
@@ -48,7 +38,6 @@ const createUser = async (req, res, next) => {
       password: hashedPassword,
     });
 
-    // 4️⃣ send safe response
     return res.status(201).send({
       _id: user._id,
       name: user.name,
@@ -56,17 +45,13 @@ const createUser = async (req, res, next) => {
       email: user.email,
     });
   } catch (err) {
-    // race condition fallback (VERY important)
+    // Handle duplicate key error (race condition)
     if (err.code === 11000) {
-      return res.status(CONFLICT).send({
-        message: "A user with that email already exists",
-      });
+      return next(new ConflictError("A user with that email already exists"));
     }
 
     if (err.name === "ValidationError") {
-      return res.status(BAD_REQUEST).send({
-        message: "Invalid user data",
-      });
+      return next(new BadRequestError("Invalid user data"));
     }
 
     return next(err);
@@ -80,41 +65,33 @@ const getCurrentUser = async (req, res, next) => {
     return res.status(200).send(user);
   } catch (err) {
     if (err.name === "DocumentNotFoundError") {
-      return next(
-        Object.assign(new Error("User not found"), { statusCode: NOT_FOUND })
-      );
+      return next(new NotFoundError("User not found"));
     }
 
     if (err.name === "CastError") {
-      return next(
-        Object.assign(new Error("Invalid user ID"), { statusCode: BAD_REQUEST })
-      );
+      return next(new BadRequestError("Invalid user ID"));
     }
 
     return next(err);
   }
 };
 
-// POST /login
+// POST /signin (login)
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(BAD_REQUEST).send({
-        message: "Email and password are required",
-      });
-    }
+
+    // With celebrate validation, email and password are guaranteed to exist
+
     const user = await User.findUserByCredentials(email, password);
 
-    const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
+      expiresIn: "7d",
+    });
 
     return res.send({ token });
   } catch (err) {
-    return next(
-      Object.assign(new Error("Incorrect email or password"), {
-        statusCode: UNAUTHORIZED,
-      })
-    );
+    return next(new UnauthorizedError("Incorrect email or password"));
   }
 };
 
@@ -132,17 +109,11 @@ const updateUser = async (req, res, next) => {
     return res.status(200).send(user);
   } catch (err) {
     if (err.name === "DocumentNotFoundError") {
-      return next(
-        Object.assign(new Error("User not found"), { statusCode: NOT_FOUND })
-      );
+      return next(new NotFoundError("User not found"));
     }
 
     if (err.name === "ValidationError") {
-      return next(
-        Object.assign(new Error("Invalid user data"), {
-          statusCode: BAD_REQUEST,
-        })
-      );
+      return next(new BadRequestError("Invalid user data"));
     }
 
     return next(err);

@@ -54,6 +54,7 @@ const validateItemId = celebrate({
 
 /* -------------------- USERS -------------------- */
 
+// Update user profile (PATCH /users/me)
 const validateUpdateProfile = celebrate({
   [Segments.BODY]: Joi.object()
     .keys({
@@ -63,9 +64,29 @@ const validateUpdateProfile = celebrate({
     .min(1),
 });
 
+// Signup validation (POST /signup)
+const validateSignup = celebrate({
+  [Segments.BODY]: Joi.object().keys({
+    name: Joi.string().min(2).max(30),
+    avatar: Joi.string().custom(validateURL),
+    email: Joi.string().required().email(),
+    password: Joi.string().required().min(6),
+  }),
+});
+
+// Signin validation (POST /signin)
+const validateSignin = celebrate({
+  [Segments.BODY]: Joi.object().keys({
+    email: Joi.string().required().email(),
+    password: Joi.string().required(),
+  }),
+});
+
 module.exports = {
   validateCreateItem,
   validateUpdateItem,
   validateItemId,
   validateUpdateProfile,
+  validateSignup,
+  validateSignin,
 };

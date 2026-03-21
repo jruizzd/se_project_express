@@ -24,15 +24,6 @@ app.use(express.json());
 app.use(cors());
 app.use(requestLogger);
 
-// ---------- TEST-FRIENDLY AUTH ----------
-// During automated tests, bypass real JWT auth
-if (NODE_ENV === "test") {
-  app.use((req, res, next) => {
-    req.user = { _id: "5d8b8592978f8bd833ca8133" };
-    next();
-  });
-}
-
 // ---------- CRASH TEST (FOR PM2 REVIEW) ----------
 app.get("/crash-test", () => {
   setTimeout(() => {

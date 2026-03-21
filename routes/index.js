@@ -1,26 +1,34 @@
 const router = require("express").Router();
 const auth = require("../middlewares/auth");
 
+// Routers
 const clothingItems = require("./clothingItems");
 const userRouter = require("./users");
 
+// Controllers
 const { login, createUser } = require("../controllers/users");
-const { getItems } = require("../controllers/clothingItems"); // Add this import
-const { NOT_FOUND } = require("../utils/errors");
+const { getItems } = require("../controllers/clothingItems");
+
+// Validators
+const { validateSignin, validateSignup } = require("../middlewares/validation");
+
+// Custom errors
+const NotFoundError = require("../errors/NotFoundError");
 
 // ---------- PUBLIC ----------
-router.post("/signin", login);
-router.post("/signup", createUser);
-router.get("/items", getItems); // ← Add this line here!
+router.post("/signin", validateSignin, login);
+router.post("/signup", validateSignup, createUser);
+router.get("/items", getItems); // Public get all items
 
 // ---------- PROTECTED ----------
 router.use(auth);
 router.use("/users", userRouter);
-router.use("/items", clothingItems); // This will handle the protected /items routes
+router.use("/items", clothingItems); // Protected item routes (create, update, delete, like/dislike)
 
 // ---------- 404 ----------
 router.use((req, res, next) => {
-  res.status(NOT_FOUND).send({ message: "Requested resource not found" });
+  // Throw error instead of sending response directly
+  next(new NotFoundError("Requested resource not found"));
 });
 
 module.exports = router;

@@ -1,5 +1,9 @@
 const ClothingItems = require("../models/clothingItem");
 
+const BadRequestError = require("../errors/BadRequestError");
+const NotFoundError = require("../errors/NotFoundError");
+const ForbiddenError = require("../errors/ForbiddenError");
+
 /**
  * CREATE ITEM
  */
@@ -11,9 +15,7 @@ const createItem = (req, res, next) => {
     .then((item) => res.status(201).send({ data: item }))
     .catch((err) => {
       if (err.name === "ValidationError") {
-        return next(
-          Object.assign(new Error("Invalid data provided"), { statusCode: 400 })
-        );
+        return next(new BadRequestError("Invalid data provided"));
       }
       return next(err);
     });
@@ -43,19 +45,13 @@ const updateItem = (req, res, next) => {
     .then((item) => res.status(200).send({ data: item }))
     .catch((err) => {
       if (err.name === "CastError") {
-        return next(
-          Object.assign(new Error("Invalid item ID"), { statusCode: 400 })
-        );
+        return next(new BadRequestError("Invalid item ID"));
       }
       if (err.name === "ValidationError") {
-        return next(
-          Object.assign(new Error("Invalid data provided"), { statusCode: 400 })
-        );
+        return next(new BadRequestError("Invalid data provided"));
       }
       if (err.name === "DocumentNotFoundError") {
-        return next(
-          Object.assign(new Error("Item not found"), { statusCode: 404 })
-        );
+        return next(new NotFoundError("Item not found"));
       }
       return next(err);
     });
@@ -72,11 +68,7 @@ const deleteItem = (req, res, next) => {
     .orFail()
     .then((item) => {
       if (!item.owner.equals(currentUserId)) {
-        return next(
-          Object.assign(new Error("Forbidden: not your item"), {
-            statusCode: 403,
-          })
-        );
+        return next(new ForbiddenError("Forbidden: not your item"));
       }
 
       return ClothingItems.findByIdAndDelete(itemId).then(() =>
@@ -85,14 +77,10 @@ const deleteItem = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === "CastError") {
-        return next(
-          Object.assign(new Error("Invalid item ID"), { statusCode: 400 })
-        );
+        return next(new BadRequestError("Invalid item ID"));
       }
       if (err.name === "DocumentNotFoundError") {
-        return next(
-          Object.assign(new Error("Item not found"), { statusCode: 404 })
-        );
+        return next(new NotFoundError("Item not found"));
       }
       return next(err);
     });
@@ -114,14 +102,10 @@ const likeItem = (req, res, next) => {
     .then((item) => res.status(200).send({ data: item }))
     .catch((err) => {
       if (err.name === "CastError") {
-        return next(
-          Object.assign(new Error("Invalid item ID"), { statusCode: 400 })
-        );
+        return next(new BadRequestError("Invalid item ID"));
       }
       if (err.name === "DocumentNotFoundError") {
-        return next(
-          Object.assign(new Error("Item not found"), { statusCode: 404 })
-        );
+        return next(new NotFoundError("Item not found"));
       }
       return next(err);
     });
@@ -143,14 +127,10 @@ const dislikeItem = (req, res, next) => {
     .then((item) => res.status(200).send({ data: item }))
     .catch((err) => {
       if (err.name === "CastError") {
-        return next(
-          Object.assign(new Error("Invalid item ID"), { statusCode: 400 })
-        );
+        return next(new BadRequestError("Invalid item ID"));
       }
       if (err.name === "DocumentNotFoundError") {
-        return next(
-          Object.assign(new Error("Item not found"), { statusCode: 404 })
-        );
+        return next(new NotFoundError("Item not found"));
       }
       return next(err);
     });

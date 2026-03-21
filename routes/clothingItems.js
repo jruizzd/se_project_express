@@ -1,8 +1,11 @@
 const express = require("express");
+
 const router = express.Router();
+const auth = require("../middlewares/auth");
 
 const {
   createItem,
+  getItems,
   updateItem,
   deleteItem,
   likeItem,
@@ -15,18 +18,15 @@ const {
   validateItemId,
 } = require("../middlewares/validation");
 
-// PROTECTED ROUTES ONLY
+// ---------- PUBLIC ROUTE ----------
+router.get("/", getItems); // anyone can get all items
 
-// Create
+// ---------- PROTECTED ROUTES ----------
+router.use(auth);
+
 router.post("/", validateCreateItem, createItem);
-
-// Update
-router.put("/:itemId", validateItemId, validateUpdateItem, updateItem);
-
-// Delete
+router.patch("/:itemId", validateItemId, validateUpdateItem, updateItem);
 router.delete("/:itemId", validateItemId, deleteItem);
-
-// Likes
 router.put("/:itemId/likes", validateItemId, likeItem);
 router.delete("/:itemId/likes", validateItemId, dislikeItem);
 
